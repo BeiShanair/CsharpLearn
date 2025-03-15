@@ -8,6 +8,10 @@ namespace ConsoleApp1
     class Program
     {
         // Main方法
+        /// <summary>
+        /// 程序入口
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             // 打印Hello, World!（并自动空行）
