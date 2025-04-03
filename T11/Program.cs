@@ -37,7 +37,7 @@
                     case 's':
                     case 'S':
                         y += 1;
-                        if (y > Console.BufferHeight - 1)
+                        if (y > Console.WindowHeight - 1)
                         {
                             y = Console.BufferHeight - 1;
                         }
@@ -53,7 +53,7 @@
                     case 'd':
                     case 'D':
                         x += 1;
-                        if (x > Console.BufferWidth - 1)
+                        if (x > Console.WindowWidth - 1)
                         {
                             x = Console.BufferWidth - 1;
                         }
