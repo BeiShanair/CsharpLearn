@@ -2,6 +2,7 @@
 {
     internal class Program
     {
+        // 初始化控制台
         static void InitConsole(int w, int h)
         {
             Console.CursorVisible = false;
@@ -10,6 +11,8 @@
             Console.SetBufferSize(w, h);
 
         }
+
+        // 当前选择屏幕类型
         enum EScreenId
         {
             Begin,
@@ -17,6 +20,65 @@
             End
         }
 
+        // 格子类型
+        enum ECellType
+        {
+            Normal,
+            Boom,
+            Pause,
+            Tunnel
+        }
+
+        // 位置信息结构体
+         struct Vector2
+        {
+            public int x;
+            public int y;
+            public Vector2(int x, int y)
+            {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
+        // 格子结构体
+        struct Cell
+        {
+            public ECellType type;
+            public Vector2 pos;
+            public Cell(ECellType type, int x, int y)
+            {
+                this.type = type;
+                this.pos.x = x;
+                this.pos.y = y;
+            }
+
+            public void Draw()
+            {
+                Console.SetCursorPosition(pos.x, pos.y);
+                switch (type)
+                {
+                    case ECellType.Normal:
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write("□");
+                        break;
+                    case ECellType.Boom:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write("●");
+                        break;
+                    case ECellType.Pause:
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.Write("∥");
+                        break;
+                    case ECellType.Tunnel:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.Write("⩉");
+                        break;
+                }
+            }
+        }
+
+        // 开始场景
         static void BeginScreen(int w, int h, ref EScreenId n)
         {
             Console.SetCursorPosition(w / 2 - 2, 5);
@@ -66,6 +128,7 @@
             }
         }
 
+        // 游戏场景
         static void GameScreen(int w, int h)
         {
             DrawWall(w, h);
@@ -74,6 +137,8 @@
 
             }
         }
+
+        // 绘制边界墙
         static void DrawWall(int w, int h)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -98,14 +163,36 @@
             Console.ForegroundColor = ConsoleColor.White;
             Console.SetCursorPosition(2, h - 10);
             Console.Write("□：普通格子");
+
+            Console.ForegroundColor = ConsoleColor.Blue;
             Console.SetCursorPosition(2, h - 9);
             Console.Write("∥：暂停，一回合不动");
+
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.SetCursorPosition(26, h - 9);
             Console.Write("●：炸弹，倒退五格");
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.SetCursorPosition(2, h - 8);
             Console.Write("⩉：时空隧道，随机倒退、暂停、换位置");
 
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.SetCursorPosition(2, h - 7);
+            Console.Write("◆：玩家");
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.SetCursorPosition(12, h - 7);
+            Console.Write("▲：电脑");
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.SetCursorPosition(22, h - 7);
+            Console.Write("○：玩家和电脑重合");
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.SetCursorPosition(2, h - 5);
+            Console.Write("按任意键开始游戏");
         }
+
         static void Main(string[] args)
         {
             int width = 50;
