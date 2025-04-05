@@ -78,63 +78,107 @@
             }
         }
 
-        // 开始场景
-        static void BeginScreen(int w, int h, ref EScreenId n)
+        // 地图结构体
+        struct Map
         {
-            Console.SetCursorPosition(w / 2 - 2, 5);
-            Console.Write("给木");
-            int selectId = 0;
-            bool start = false;
-            while (true)
+            public Cell[] cell;
+
+            public Map(int x, int y, int num)
             {
-                Console.ForegroundColor = selectId == 0 ? ConsoleColor.Red : ConsoleColor.White;
-                Console.SetCursorPosition(w / 2 - 4, 10);
-                Console.Write("开始游戏");
-                Console.ForegroundColor = selectId == 1 ? ConsoleColor.Red : ConsoleColor.White;
-                Console.SetCursorPosition(w / 2 - 4, 15);
-                Console.Write("退出游戏");
-                switch (Console.ReadKey(true).Key)
+                cell = new Cell[num];
+                int countX = 0;
+                int countY = 0;
+                int stepNum = 2;
+                Random random = new Random();
+                int randomNum;
+
+                for (int i = 0; i < num; i++)
                 {
-                    case ConsoleKey.W:
-                        selectId--;
-                        if (selectId < 0)
+                    randomNum = random.Next(0, 101);
+                    // 初始化格子类型
+                    if (randomNum < 85 || i == 0 || i == num - 1)
+                    {
+                        cell[i].type = ECellType.Normal;
+                    }
+                    else if (randomNum >= 85 && randomNum < 90)
+                    {
+                        cell[i].type = ECellType.Boom;
+                    }
+                    else if (randomNum >= 90 && randomNum < 95)
+                    {
+                        cell[i].type = ECellType.Pause;
+                    }
+                    else
+                    {
+                        cell[i].type = ECellType.Tunnel;
+                    }
+                    cell[i].pos = new Vector2(x, y);
+                    if (countX == 10)
+                    {
+                        y += 1;
+                        countY++;
+                        if (countY == 2)
                         {
-                            selectId = 0;
+                            countY = 0;
+                            countX = 0;
+                            stepNum = -stepNum;
                         }
-                        break;
-                    case ConsoleKey.S:
-                        selectId++;
-                        if (selectId > 1)
-                        {
-                            selectId = 1;
-                        }
-                        break;
-                    case ConsoleKey.J:
-                        if (selectId == 0)
-                        {
-                            n = EScreenId.Game;
-                            start = true;
-                        }
-                        else
-                        {
-                            Environment.Exit(0);
-                        }
-                        break;
+                    }
+                    else
+                    {
+                        x += stepNum;
+                        countX++;
+                    }
+                        
                 }
-                if (start)
+
+            }
+
+            public void Draw()
+            {
+                for (int i = 0; i < cell.Length; i++)
                 {
-                    break;
+                    cell[i].Draw();
                 }
             }
         }
 
-        // 游戏场景
-        static void GameScreen(int w, int h)
+        // 玩家枚举
+        enum EPlayer
         {
-            DrawWall(w, h);
-            while (true)
-            {
+            Player,
+            Computer
+        }
 
+        // 玩家结构体
+        struct Player
+        {
+            public EPlayer player;
+            public int nowIndex;
+            public bool isPause;
+
+            public Player(EPlayer player, int nowIndex)
+            {
+                this.player = player;
+                this.nowIndex = nowIndex;
+                isPause = false;
+            }
+
+            public void Draw(Map map)
+            {
+                Cell cell = map.cell[nowIndex];
+                Console.SetCursorPosition(cell.pos.x, cell.pos.y);
+                switch (player)
+                {
+                    case EPlayer.Player:
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.Write("◆");
+                        break;
+                    case EPlayer.Computer:
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.Write("▲");
+                        break;
+                }
             }
         }
 
@@ -142,7 +186,7 @@
         static void DrawWall(int w, int h)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            for (int i = 0; i < w; i+=2)
+            for (int i = 0; i < w; i += 2)
             {
                 Console.SetCursorPosition(i, 0);
                 Console.Write("■");
@@ -193,6 +237,229 @@
             Console.Write("按任意键开始游戏");
         }
 
+        // 绘制玩家
+        static void DrawPlayer(Player player, Player computer, Map map)
+        {
+            if (player.nowIndex == computer.nowIndex)
+            {
+                Cell cell = map.cell[player.nowIndex];
+                Console.SetCursorPosition(cell.pos.x, cell.pos.y);
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.Write("○");
+            }
+            else
+            {
+                player.Draw(map);
+                computer.Draw(map);
+            }
+        }
+
+        // 清除信息
+        static void CleanInfo(int h)
+        {
+            Console.SetCursorPosition(2, h - 5);
+            Console.Write("                               ");
+            Console.SetCursorPosition(2, h - 4);
+            Console.Write("                               ");
+            Console.SetCursorPosition(2, h - 3);
+            Console.Write("                               ");
+            Console.SetCursorPosition(2, h - 2);
+            Console.Write("                               ");
+        }
+
+        // 扔骰子
+        static bool ThrowDice(int w, int h, ref Player player, ref Player computer, Map map)
+        {
+            CleanInfo(h);
+
+            Console.ForegroundColor = player.player == EPlayer.Player ? ConsoleColor.Cyan : ConsoleColor.Magenta;
+
+            if (player.isPause)
+            {
+                Console.SetCursorPosition(2, h - 5);
+                Console.Write("{0}处于暂停状态，按任意键继续", player.player == EPlayer.Player ? "你" : "电脑");
+                player.isPause = false;
+                return false;
+            }
+
+            Random r = new Random();
+            int random = r.Next(0, 7);
+            player.nowIndex += random;
+
+            Console.SetCursorPosition(2, h - 5);
+            Console.Write("{0}扔出的点数为：{1}", player.player == EPlayer.Player ? "你" : "电脑", random);
+
+            if (player.nowIndex >= map.cell.Length - 1)
+            {
+                player.nowIndex = map.cell.Length - 1;
+                Console.SetCursorPosition(2, h - 4);
+                if (player.player == EPlayer.Player)
+                {
+                    Console.Write("恭喜你率先到达终点！你赢了！");
+                }
+                else
+                {
+                    Console.Write("很遗憾，电脑率先到达终点！你输了！");
+                }
+                Console.SetCursorPosition(2, h - 3);
+                Console.Write("按任意键结束游戏");
+                return true;
+            }
+            else
+            {
+                Cell cell = map.cell[player.nowIndex];
+                switch (cell.type)
+                {
+                    case ECellType.Normal:
+                        Console.SetCursorPosition(2, h - 4);
+                        Console.Write("{0}到达了一个安全的位置", player.player == EPlayer.Player ? "你" : "电脑");
+                        Console.SetCursorPosition(2, h - 3);
+                        Console.Write("按任意键继续，让{0}扔骰子", player.player == EPlayer.Computer ? "你" : "电脑");
+                        break;
+                    case ECellType.Boom:
+                        player.nowIndex -= 5;
+                        if (player.nowIndex < 0)
+                        {
+                            player.nowIndex = 0;
+                        }
+                        Console.SetCursorPosition(2, h - 4);
+                        Console.Write("{0}踩到了炸弹，退后5格", player.player == EPlayer.Player ? "你" : "电脑");
+                        Console.SetCursorPosition(2, h - 3);
+                        Console.Write("按任意键继续，让{0}扔骰子", player.player == EPlayer.Computer ? "你" : "电脑");
+                        break;
+                    case ECellType.Pause:
+                        player.isPause = true;
+                        Console.SetCursorPosition(2, h - 4);
+                        Console.Write("{0}暂停一回合", player.player == EPlayer.Player ? "你" : "电脑");
+                        Console.SetCursorPosition(2, h - 3);
+                        Console.Write("按任意键继续，让{0}扔骰子", player.player == EPlayer.Computer ? "你" : "电脑");
+                        break;
+                    case ECellType.Tunnel:
+                        Console.SetCursorPosition(2, h - 4);
+                        Console.Write("{0}踩到了时空隧道", player.player == EPlayer.Player ? "你" : "电脑");
+                        
+                        random = r.Next(1, 91);
+                        if (random < 30)
+                        {
+                            player.nowIndex -= 5;
+                            if (player.nowIndex < 0)
+                            {
+                                player.nowIndex = 0;
+                            }
+                            Console.SetCursorPosition(2, h - 3);
+                            Console.Write("触发炸弹，倒退5格");
+                        }
+                        else if (random <= 60)
+                        {
+                            player.isPause = true;
+                            Console.SetCursorPosition(2, h - 3);
+                            Console.Write("触发暂停，暂停一回合");
+                        }
+                        else
+                        {
+                            int temp = player.nowIndex;
+                            player.nowIndex = computer.nowIndex;
+                            computer.nowIndex = temp;
+                            Console.SetCursorPosition(2, h - 3);
+                            Console.Write("双方交换位置");
+                        }
+                        Console.SetCursorPosition(2, h - 2);
+                        Console.Write("按任意键继续，让{0}扔骰子", player.player == EPlayer.Computer ? "你" : "电脑");
+                        break;
+                }
+            }
+                return false;
+        }
+        // 开始场景
+        static void BeginScreen(int w, int h, ref EScreenId n)
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.SetCursorPosition(w / 2 - 2, 5);
+            Console.Write(n == EScreenId.Begin ? "给木" : "结束");
+            int selectId = 0;
+            bool start = false;
+            while (true)
+            {
+                Console.ForegroundColor = selectId == 0 ? ConsoleColor.Red : ConsoleColor.White;
+                Console.SetCursorPosition(w / 2 - 4, 10);
+                Console.Write(n == EScreenId.Begin ? "开始游戏" : "重新开始");
+                Console.ForegroundColor = selectId == 1 ? ConsoleColor.Red : ConsoleColor.White;
+                Console.SetCursorPosition(w / 2 - 4, 15);
+                Console.Write("退出游戏");
+                switch (Console.ReadKey(true).Key)
+                {
+                    case ConsoleKey.W:
+                        selectId--;
+                        if (selectId < 0)
+                        {
+                            selectId = 0;
+                        }
+                        break;
+                    case ConsoleKey.S:
+                        selectId++;
+                        if (selectId > 1)
+                        {
+                            selectId = 1;
+                        }
+                        break;
+                    case ConsoleKey.J:
+                        if (selectId == 0)
+                        {
+                            n = n == EScreenId.Begin ? EScreenId.Game : EScreenId.Begin;
+                            start = true;
+                        }
+                        else
+                        {
+                            Environment.Exit(0);
+                        }
+                        break;
+                }
+                if (start)
+                {
+                    break;
+                }
+            }
+        }
+
+        // 游戏场景
+        static void GameScreen(int w, int h, ref EScreenId screen)
+        {
+            DrawWall(w, h);
+
+            Map map = new Map(14, 3, 80);
+            map.Draw();
+
+            Player player = new Player(EPlayer.Player, 0);
+            Player computer = new Player(EPlayer.Computer, 0);
+            DrawPlayer(player, computer, map);
+
+            bool isGameOver = false;
+            while (true)
+            {
+                Console.ReadKey(true);
+                isGameOver = ThrowDice(w, h, ref player, ref computer, map);
+                map.Draw();
+                DrawPlayer(player, computer, map);
+                if (isGameOver)
+                {
+                    Console.ReadKey(true);
+                    screen = EScreenId.End;
+                    break;
+                }
+
+                Console.ReadKey(true);
+                isGameOver = ThrowDice(w, h, ref computer, ref player, map);
+                map.Draw();
+                DrawPlayer(player, computer, map);
+                if (isGameOver)
+                {
+                    Console.ReadKey(true);
+                    screen = EScreenId.End;
+                    break;
+                }
+            }
+        }
+        
         static void Main(string[] args)
         {
             int width = 50;
@@ -210,10 +477,11 @@
                         break;
                     case EScreenId.Game:
                         Console.Clear();
-                        GameScreen(width, height);
+                        GameScreen(width, height, ref nowScreenId);
                         break;
                     case EScreenId.End:
                         Console.Clear();
+                        BeginScreen(width, height, ref nowScreenId);
                         break;
                 }
             }
