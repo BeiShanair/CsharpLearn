@@ -36,6 +36,8 @@
         public Person[] friend; // 可以定义同名字段，但不能初始化（除了初始化为null）
         public Position position;
         private int money;
+        private int hegiht;
+        public int[,] arr;
 
         // 构造函数
         // 语法：[访问修饰符] 类名([参数列表])
@@ -46,7 +48,7 @@
         }
         // 构造函数可以重载
         // 有参构造函数会顶掉无参构造函数
-        public Person(string name, int age):this() // 调用无参构造函数
+        public Person(string name, int age) : this() // 调用无参构造函数
         {
             this.name = name;
             this.age = age;
@@ -94,6 +96,9 @@
         // 保护成员变量，为成员属性的获取和赋值添加逻辑处理，属性让成员变量在外部，只能获取不能修改
         public int Money
         {
+            // 内部的方法可以添加访问修饰符
+            // 但访问修饰符的权限不能比属性本身大
+            // 且get和set不能同时低于外部的访问修饰符
             get
             {
                 return money;
@@ -104,7 +109,63 @@
                 this.money = value;
             }
         }
+        // 自动属性
+        // 当一个特征希望外部能得到，但不能修改，且没有特殊处理时，可以用自动属性
+        // 语法：[访问修饰符] 数据类型 属性名 { get; set; }
+        public int Height
+        {
+            get;
+            set;
+        }
+
+        // 索引器
+        // 让对象可以像数组一样使用，通过索引来访问成员
+        // 语法：[访问修饰符] 数据类型 this[索引类型 索引名]
+        public Person this[int index]
+        {
+            get
+            {
+                if (friend == null || index >= friend.Length || index < 0)
+                {
+                    return null;
+                }
+                return this.friend[index];
+            }
+            set
+            {
+                if (friend == null)
+                {
+                    friend = new Person[] { value };
+                }
+                else if (index > friend.Length - 1 || index < 0)
+                {
+                    friend[friend.Length - 1] = value;
+                }
+                // value是索引器赋值时传入的值
+                this.friend[index] = value;
+            }
+        }
+        // 索引器重载
+        // 语法：[访问修饰符] 数据类型 this[索引类型 索引名1, 索引类型 索引名2]
+        // 索引器可以重载，但索引类型和索引数量必须不同
+        public int this[int i, int j]
+        {
+            get
+            {
+                return arr[i, j];
+            }
+            set
+            {
+                if (arr == null)
+                {
+                    arr = new int[i, j];
+                }
+                this.arr[i, j] = value;
+            }
+        }
     }
+
+
 
     // 垃圾回收机制
     // 垃圾回收的过程是在遍历堆对象引用表，找到没有被引用的对象，然后释放内存
@@ -139,6 +200,10 @@
 
             person.Money = 100;
             Console.WriteLine(person.Money);
+
+            // 索引器使用
+            person[0] = new Person();
+            Console.WriteLine(person[0].name);
         }
     }
 }
