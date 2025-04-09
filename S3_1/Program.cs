@@ -163,7 +163,47 @@
                 this.arr[i, j] = value;
             }
         }
+
+        // 静态成员
+        // 语法：[访问修饰符] static 数据类型 静态成员名;
+        // 静态成员与程序同生共死，在运行时，就会被初始化，分配内存空间
+        public static float Pi = 3.1415926f;
+        public static float CircleArea(float r)
+        {
+            return Pi * r * r;
+        }
     }
+
+    // 静态类
+    // 语法：static class 类名
+    // 静态类只能包含静态成员，不能被实例化
+    // 常用为工具类
+    static class Student
+    {
+        static int age = 18;
+
+        // 静态构造函数
+        // 语法：static 类名()
+        // 静态构造函数只能有一个，且不能被调用
+        // 静态构造函数在类被第一次使用时，会自动调用
+        static Student()
+        {
+            Console.WriteLine("静态构造函数被调用了");
+            age = 20;
+        }
+
+        public static void Speak(string str)
+        {
+            Console.WriteLine(str);
+        }
+        public static int Age
+        {
+            get;
+            set;
+        }
+    }
+
+    
 
 
 
@@ -204,6 +244,12 @@
             // 索引器使用
             person[0] = new Person();
             Console.WriteLine(person[0].name);
+
+            // 静态成员使用
+            Console.WriteLine(Person.CircleArea(2));
+
+            // 静态类使用
+            Student.Speak("你好"); // 会先打印"静态构造函数被调用了"
         }
     }
 }
