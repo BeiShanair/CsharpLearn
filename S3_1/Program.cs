@@ -203,9 +203,90 @@
         }
     }
 
-    
+    // 拓展方法
+    // 是为现有的非静态类添加新的方法，而不通过继承
+    // 语法：public static 返回值类型 方法名(类名 对象名, 参数列表)
+    // 拓展方法必须定义在静态类中
+    public static class Tool
+    {
+        public static void Speak(this int i)
+        {
+            Console.WriteLine("拓展方法：", i);
+        }
+    }
 
+    class Point
+    {
+        public int x, y;
 
+        // 运算符重载
+        // 语法：public static 返回值类型 operator 运算符(参数列表)（参数中必须包含该类类型的参数）
+        public static Point operator +(Point p1, Point p2)
+        {
+            Point p = new Point();
+            p.x = p1.x + p2.x;
+            p.y = p1.y + p2.y;
+            return p;
+        }
+
+        // 一个符号可以重载多个
+        public static Point operator +(Point p1, int x)
+        {
+            Point p = new Point();
+            p.x = p1.x + x;
+            p.y = p1.y + x;
+            return p;
+        }
+    }
+
+    // 为自定义的类添加拓展方法
+    static class StudentTool
+    {
+        public static void Announcement(this Person p, string str)
+        {
+            Console.WriteLine("{0}宣布{1}", p.name, str);
+        }
+    }
+
+    // 内部类
+    // 在一个类中再定义一个类，这个类就是内部类
+    class NormalPerson
+    {
+        public int age;
+        public string name;
+        public Body body;
+
+        public class Body
+        {
+            Arm leftArm;
+            Arm rightArm;
+            class Arm
+            {
+
+            }
+        }
+    }
+
+    // 分布类
+    // 将一个类拆分为多个部分
+    // 语法：partial class 类名
+    partial class Worker
+    {
+        public string name;
+        partial void Speak(string str);
+    }
+    partial class Worker
+    {
+        public int age;
+        partial void Speak(string str)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    // 分布方法
+    // 只能写在分布类中
+    // 不能加访问修饰符，默认私有，void，可以有参数，但不用，out关键字
 
     // 垃圾回收机制
     // 垃圾回收的过程是在遍历堆对象引用表，找到没有被引用的对象，然后释放内存
@@ -250,6 +331,24 @@
 
             // 静态类使用
             Student.Speak("你好"); // 会先打印"静态构造函数被调用了"
+
+            // 拓展方法使用
+            int i = 10;
+            i.Speak();
+
+            person.Announcement("好好学习，天天向上");
+
+            Point point = new Point();
+            point.x = 1;
+            point.y = 2;
+            Point point2 = new Point();
+            point2.x = 3;
+            point2.y = 4;
+            Point point3 = point + point2;
+            Console.WriteLine(point3.x.ToString() + "," + point3.y.ToString());
+
+            Point point4 = point + 5; // 重载的顺序决定调用时的顺序
+            Console.WriteLine(point4.x.ToString() + "," + point4.y.ToString());
         }
     }
 }
